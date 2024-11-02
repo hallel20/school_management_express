@@ -1,0 +1,84 @@
+datasource db {
+  provider = "mysql" // Adjust the provider as needed
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  username String? @unique
+  email    String  @unique
+  password String
+  isAdmin  Boolean @default(false)
+
+  student Student?
+  teacher Teacher?
+}
+
+model Student {
+  id          Int       @id @default(autoincrement())
+  name        String
+  studentId   String    @unique
+  userId      Int       @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results     Result[]
+  classroomId Int
+  classroom   ClassRoom @relation(fields: [classroomId], references: [id])
+}
+
+model Teacher {
+  id       Int       @id @default(autoincrement())
+  userId   Int       @unique
+  subjects Subject[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subject {
+  id       Int       @id @default(autoincrement())
+  name     String
+  teachers Teacher[]
+  exams    Exam[]
+}
+
+model ClassRoom {
+  id       Int       @id @default(autoincrement())
+  name     String
+  students Student[]
+}
+
+model Result {
+  id             Int          @id @default(autoincrement())
+  academicTermId Int
+  academicTerm   AcademicTerm @relation(fields: [academicTermId], references: [id])
+  student        Student      @relation(fields: [studentId], references: [id])
+  studentId      Int
+  exam           Exam         @relation(fields: [examId], references: [id])
+  examId         Int
+  score          Int
+}
+
+model SchoolInfo {
+  id      Int    @id @default(autoincrement())
+  name    String
+  address String
+}
+
+model AcademicTerm {
+  id       Int      @id @default(autoincrement())
+  termName String
+  start    DateTime
+  results  Result[]
+  end      DateTime
+}
+
+model Exam {
+  id        Int      @id @default(autoincrement())
+  title     String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  subjectId Int
+  results   Result[]
+}
